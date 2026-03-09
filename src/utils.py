@@ -1,16 +1,19 @@
 import pygame
 
-def draw_grid_lines(surf: pygame.Surface, rows: int, cols: int, size: int, color: tuple[int], update=False, width=1) -> None:
-    for i in range(rows+1):
+def draw_grid_lines(surf: pygame.Surface, rows: int, cols: int, size: int, color: tuple[int, int, int],
+                    update: bool = False, width: int = 1, pad_ends: bool = True) -> None:
+    for i in range(rows):
         pygame.draw.line(surf, color, (0, i*size), (cols*size, i*size), width)
-    for i in range(cols+1):
+    for i in range(cols):
         pygame.draw.line(surf, color, (i*size, 0), (i*size, rows*size), width)
+    pygame.draw.line(surf, color, (0, rows*size - (width*pad_ends)//4), (cols*size, rows*size - (width*pad_ends)//4), width)
+    pygame.draw.line(surf, color, (cols*size - (width*pad_ends)//4, 0), (cols*size - (width*pad_ends)//4, rows*size), width)
     if update: pygame.display.update()
 
 class Label:
     saved = {}
     default = {"typeface": "freesansbold.ttf", "size": 50, "foreground": (0,0,0), "background": (255, 255, 255), "anchor": "center", "width":0, "borderRadius": -1, "save": False, "saveID":None}
-    def __init__(self, text, pos, **kwargs):
+    def __init__(self, text: str, pos: tuple[int, int] | int, **kwargs):
         self.text = text
         self.settings = self.default | kwargs
 
@@ -22,7 +25,7 @@ class Label:
         self.renderedText = self.font.render(f" {self.text} ", True, self.settings["foreground"])
         
         self.rect = self.renderedText.get_rect()
-        exec(f"self.rect.{self.settings['anchor']} = pos")
+        setattr(self.rect, self.settings["anchor"], pos)
     
     def draw(self, surf):
         pygame.draw.rect(surf, self.settings["background"], self.rect, self.settings["width"], self.settings["borderRadius"])

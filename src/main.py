@@ -1,7 +1,8 @@
 '''
 The main menu to select the Game
 '''
-import pygame
+import pygame, importlib
+from types import ModuleType
 from utils import Label, Button
 pygame.init()
 
@@ -9,7 +10,7 @@ class MainApp:
     WIDTH: int = 1280
     HEIGHT: int = 720
     COLORS: dict = {"bg": pygame.Color("purple")}
-    APPS: tuple[str] = ("G2048",)
+    APPS: tuple[str, ...] = ("G2048", "TicTacToe", "Pong")
 
     def __init__(self, fullscreen: bool = False) -> None:
         '''Initializing the main app'''
@@ -39,7 +40,7 @@ class MainApp:
     def loadUIElements(self) -> None:
         '''Loads the UI elements like Labels and Buttons'''
         # Sets the default values of the UI elements for this project.
-        Label.setDefault(foreground=(255, 0, 0), background=(50, 50, 50), borderRadius = 10)
+        Label.setDefault(foreground=(255, 0, 0), background=(50, 50, 50), borderRadius = 10) # type: ignore
 
         # Adding the Labels
         self.labels: list[Label] = []
@@ -70,10 +71,12 @@ class MainApp:
         '''Sets the Game'''
         self.clearScreen(update=True)
         print(f"Loading {appName}")
-        exec(f"from {appName} import App\nself.app: App = App(self.WIN)")
+        module: ModuleType = importlib.import_module(f"games.{appName}")
+        self.app = getattr(module, "App")(self.WIN)
     
     def quitApp(self) -> None:
-        self.app.quit()
+        if self.app:
+            self.app.quit()
     
     def quit(self) -> None:
         self.run = False
@@ -100,7 +103,10 @@ class MainApp:
             
             self.draw()
 
-if __name__ == "__main__":
+def main() -> None:
     mainApp: MainApp = MainApp()
     mainApp.mainloop()
     pygame.quit()
+
+if __name__ == "__main__":
+    main()
